@@ -424,6 +424,11 @@ const changeAdmin=TryCatch(
     if(chat.creator.toString()!==req.user.toString()) return next(new ErrorHandler("You are not allowed to change admin",403));
     if(!chat.members.includes(userId)) return next(new ErrorHandler("User is not a member of this group",400));
     if(!user) return next(new ErrorHandler("User not found",404));
+
+    if(chat.creator.toString()===userId.toString()){
+      return next(new ErrorHandler(`${user.name} is already Admin`,404));
+    }
+
     chat.creator=userId;
     await chat.save();
     emitEvent(req,ALERT,chat.members,{
