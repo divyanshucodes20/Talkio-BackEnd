@@ -1,6 +1,7 @@
 import express from "express";
 import {
   addMembers,
+  changeAdmin,
   deleteChat,
   getChatDetails,
   getMessages,
@@ -14,6 +15,7 @@ import {
 } from "../controllers/chat.js";
 import {
   addMemberValidator,
+  changeAdminValidator,
   chatIdValidator,
   newGroupValidator,
   removeMemberValidator,
@@ -64,6 +66,7 @@ app
   .route("/:id")
   .get(chatIdValidator(), validateHandler, getChatDetails)
   .put(renameValidator(), validateHandler, renameGroup)
-  .delete(chatIdValidator(), validateHandler, deleteChat);
+  .delete(chatIdValidator(), validateHandler, deleteChat)
+  .patch(changeAdminValidator(),validateHandler,changeAdmin);
 
 export default app;

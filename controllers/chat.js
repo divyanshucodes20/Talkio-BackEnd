@@ -317,6 +317,11 @@ const renameGroup = TryCatch(async (req, res, next) => {
 
   await chat.save();
 
+  emitEvent(req,ALERT,chat.members,{
+    message:`Group Name Changed to ${name}`,
+    chatId
+  })
+
   emitEvent(req, REFETCH_CHATS, chat.members);
 
   return res.status(200).json({
@@ -406,6 +411,33 @@ const getMessages = TryCatch(async (req, res, next) => {
     totalPages,
   });
 });
+const changeAdmin=TryCatch(
+  async(req,res,next)=>{
+    const chatId=req.params.id;
+    const {userId}=req.body;
+    const [chat,user]=await Promise.all([
+      Chat.findById(chatId),
+      User.findById(userId)
+    ])
+    if(!chat) return next(new ErrorHandler("Chat not found",404));
+    if(!chat.groupChat) return next(new ErrorHandler("This is not a group chat",400));
+    if(chat.creator.toString()!==req.user.toString()) return next(new ErrorHandler("You are not allowed to change admin",403));
+    if(!chat.members.includes(userId)) return next(new ErrorHandler("User is not a member of this group",400));
+    if(!user) return next(new ErrorHandler("User not found",404));
+    chat.creator=userId;
+    await chat.save();
+    emitEvent(req,ALERT,chat.members,{
+      message:`Admin has been changed to ${user.name}`,
+      chatId
+    })
+    emitEvent(req,REFETCH_CHATS,chat.members);
+    return res.status(200).json({
+      success:true,
+      message:"Admin changed successfully"
+    })
+  }
+)
+
 
 export {
   newGroupChat,
@@ -419,4 +451,5 @@ export {
   renameGroup,
   deleteChat,
   getMessages,
+  changeAdmin
 };
